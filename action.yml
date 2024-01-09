@@ -1,5 +1,5 @@
-name: 'OpenFGA Test Action'
-description: 'Run and verify your models'
+name: 'OpenFGA Model Testing Action'
+description: 'Github Action for testing your OpenFGA Authorization Model'
 
 inputs:
   store-file-path:
