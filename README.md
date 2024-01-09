@@ -21,7 +21,6 @@ jobs:
     name: Run test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - uses: openfga/action-openfga-test@v0.1
         with:
           store-file-path: ./example/model.fga.yaml
