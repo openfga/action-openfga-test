@@ -1,0 +1,19 @@
+name: 'OpenFGA Test Action'
+description: 'Run and verify your models'
+
+inputs:
+  store-file-path:
+    description: The path to the store file
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install OpenFGA CLI
+      uses: jaxxstorm/action-install-gh-release@v1.10.0
+      with:
+        repo: openfga/cli
+        cache: enable
+    - name: Run OpenFGA CLI
+      shell: bash
+      run: fga model test --tests ${{ inputs.store-file-path }}
