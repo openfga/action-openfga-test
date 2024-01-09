@@ -6,7 +6,7 @@ This action can be used to test your authorization model using a store file.
 
 | Parameter  | Description   |
 |----------|--------------|
-| The path to your store file relative to the root of your project     | 
+| `store-file-path` | The path to your store file relative to the root of your project     | 
 
 ## Example
 
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: openfga/action-openfga-test
+      - uses: openfga/action-openfga-test@v0.1
         with:
           store-file-path: ./example/model.fga.yaml
 ```
