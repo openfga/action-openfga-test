@@ -1,5 +1,8 @@
 name: 'OpenFGA Model Testing Action'
 description: 'Github Action for testing your OpenFGA Authorization Model'
+branding:
+  icon: 'align-center'
+  color: 'green'
 
 inputs:
   store-file-path:
