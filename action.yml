@@ -13,7 +13,7 @@ runs:
   using: composite
   steps:
     - name: Install OpenFGA CLI
-      uses: jaxxstorm/action-install-gh-release@v1.10.0
+      uses: jaxxstorm/action-install-gh-release@v1.11.0
       with:
         repo: openfga/cli
         cache: enable
