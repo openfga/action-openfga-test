@@ -9,6 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./
+      - name: default values
+        uses: ./
+      - name: specify folder
+        uses: ./
         with:
-          store-file-path: ./example/model.fga.yaml
+          test_path: ./example
+      - name: single file
+        uses: ./
+        with:
+          test_path: ./example/model.fga.yaml
