@@ -5,9 +5,14 @@ branding:
   color: 'green'
 
 inputs:
-  store-file-path:
-    description: The path to the store file
-    required: true
+  test_path:
+    description: 'Path to the test file or folder'
+    required: false
+    default: '.'
+  test_files_pattern:
+    description: 'Pattern to match the test files'
+    required: false
+    default: '*.fga.yaml'
 
 runs:
   using: composite
@@ -19,4 +24,15 @@ runs:
         cache: enable
     - name: Run OpenFGA CLI
       shell: bash
-      run: fga model test --tests ${{ inputs.store-file-path }}
+      run: |
+          while IFS= read -r -d '' test_file
+          do
+            ((test_files_count+=1))
+            echo "Running FGA test file ${test_file}"
+            fga model test --tests "${test_file}"
+          done <   <(find ${{ inputs.test_path }} -name "${{ inputs.test_files_pattern }}" -print0)
+  
+          if [[ ${test_files_count} -eq 0 ]]; then
+            echo "No FGA test file found for path '${{ inputs.test_path }}' and pattern '${{ inputs.test_files_pattern }}'"
+            exit 1
+          fi
