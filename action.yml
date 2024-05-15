@@ -13,6 +13,15 @@ inputs:
     description: 'Pattern to match the test files'
     required: false
     default: '*.fga.yaml'
+  fga_server_url:
+    description: 'The OpenFGA server to test the Authorization Model against. If not provided, the tests will be run using the cli built-in OpenFGA instance.'
+    required: false
+    default: ''
+  fga_api_token:
+    description: 'The api token to use for testing against an OpenFGA server. Ignored if fga_server_url is not provided.'
+    required: false
+    default: ''
+
 
 runs:
   using: composite
@@ -24,15 +33,23 @@ runs:
         cache: enable
     - name: Run OpenFGA CLI
       shell: bash
+      env:
+        FGA_SERVER_URL: ${{ inputs.fga_server_url }}
+        FGA_API_TOKEN: ${{ inputs.fga_api_token }}
       run: |
-          while IFS= read -r -d '' test_file
-          do
-            ((test_files_count+=1))
-            echo "Running FGA test file ${test_file}"
-            fga model test --tests "${test_file}"
-          done <   <(find ${{ inputs.test_path }} -name "${{ inputs.test_files_pattern }}" -print0)
-  
-          if [[ ${test_files_count} -eq 0 ]]; then
-            echo "No FGA test file found for path '${{ inputs.test_path }}' and pattern '${{ inputs.test_files_pattern }}'"
-            exit 1
-          fi
+        fga_opts=""
+        if [[ -n "${FGA_SERVER_URL}" ]]; then
+          fga_opts="--api-url ${FGA_SERVER_URL} ${FGA_API_TOKEN:+--api-token ${FGA_API_TOKEN}}"
+        fi
+        
+        while IFS= read -r -d '' test_file
+        do
+          ((test_files_count+=1))
+          echo "Running FGA test file ${test_file}"
+          fga model test ${fga_opts} --tests "${test_file}"
+        done <   <(find ${{ inputs.test_path }} -name "${{ inputs.test_files_pattern }}" -print0)
+        
+        if [[ ${test_files_count} -eq 0 ]]; then
+          echo "No FGA test file found for path '${{ inputs.test_path }}' and pattern '${{ inputs.test_files_pattern }}'"
+          exit 1
+        fi
