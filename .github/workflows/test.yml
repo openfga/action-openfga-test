@@ -24,3 +24,63 @@ jobs:
         uses: ./
         with:
           test_path: ./example/model.fga.yaml
+
+  test_conditions_against_openfga_version:
+    name: Run test against given OpenFGA version
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test:
+          - openfga_tag: v1.5.3
+            conditions_supported: true
+          - openfga_tag: v1.4.3
+            conditions_supported: true
+          - openfga_tag: v1.3.7
+            conditions_supported: false
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: openfga
+          POSTGRES_PASSWORD: "1234"
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      OPENFGA_DATASTORE_ENGINE: 'postgres'
+      OPENFGA_DATASTORE_URI: 'postgres://openfga:1234@127.0.0.1:5432/openfga'
+      OPENFGA_LOG_LEVEL: debug
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install OpenFGA server ${{ matrix.test.openfga_tag }}
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
+        with:
+          repo: openfga/openfga
+          tag: ${{ matrix.test.openfga_tag }}
+          cache: enable
+      - name: Migrate OpenFGA Database
+        shell: bash
+        run: openfga migrate
+      - name: Start OpenFGA Server
+        shell: bash
+        run: openfga run &
+      - name: Run OpenFGA CLI Tests
+        id: 'tests'
+        uses: ./
+        continue-on-error: true
+        with:
+          test_path: ./example/model_with_conditions.fga.yaml
+          fga_server_url: 'http://localhost:8080'
+      - name: Assert expected results
+        run: |
+          if [ "${{ matrix.test.conditions_supported }}" == "true" ] && [ "${{ steps.tests.outcome }}" == "failure" ]
+          then
+            echo "${{ matrix.test.openfga_tag }} is expected to support conditions but tests failed"
+            exit 1
+          fi
+          if [ "${{ matrix.test.conditions_supported }}" == "false" ] && [ "${{ steps.tests.outcome }}" == "success" ]
+          then
+            echo "${{ matrix.test.openfga_tag }} is expected to not support conditions but tests passed"
+            exit 1
+          fi
+
