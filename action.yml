@@ -35,24 +35,32 @@ runs:
       with:
         repo: openfga/cli
         cache: enable
+    - uses: chrisdickinson/setup-yq@v1.0.1
+      with:
+        yq-version: v4.25.3
     - name: Run OpenFGA CLI
       shell: bash
       run: |
-        fga_opts=""
-        fga_token="${{ inputs.fga_api_token }}"
-        if [[ -n "${{ inputs.fga_server_url }}" ]]; then
-          if [[ -z "${{ inputs.fga_server_store_id }}" ]]; then
-            echo "missing store id for specified OpenFGA server ${{ inputs.fga_server_url }}."
-            exit 1
-          fi
-          fga_opts="--api-url ${{ inputs.fga_server_url }} --store-id ${{ inputs.fga_server_store_id }}  ${fga_token:+--api-token ${fga_token}}"
-        fi
-        
         while IFS= read -r -d '' test_file
         do
           ((test_files_count+=1))
-          echo "Running FGA test file ${test_file}"
-          fga model test ${fga_opts} --tests "${test_file}"
+        
+          if [[ -z "${{ inputs.fga_server_url }}" ]]; then
+            echo "Running FGA test file ${test_file}"
+            fga model test --tests "${test_file}"
+          else
+            echo "Running FGA test file ${test_file} against OpenFGA server ${{ inputs.fga_server_url }}"
+            fga_token="${{ inputs.fga_api_token }}"
+            test_file_without_model=mktemp
+            yq 'del(.model_file, .model)' ${test_file} > ${test_file_without_model}
+            fga model test \
+              ${fga_server_opts} \
+              --api-url "${{ inputs.fga_server_url }}" \
+              --store-id "${{ inputs.fga_server_store_id }}" \
+              ${fga_token:+--api-token ${fga_token}} \
+              --tests "${test_file_without_model}"
+          fi
+        
         done <   <(find ${{ inputs.test_path }} -name "${{ inputs.test_files_pattern }}" -print0)
         
         if [[ ${test_files_count} -eq 0 ]]; then
