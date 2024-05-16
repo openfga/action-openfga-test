@@ -25,8 +25,8 @@ jobs:
         with:
           test_path: ./example/model.fga.yaml
 
-  test_conditions_against_openfga_version:
-    name: Run test against given OpenFGA version
+  test_conditions_support:
+    name: Test conditions support
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -64,6 +64,20 @@ jobs:
       - name: Start OpenFGA Server
         shell: bash
         run: openfga run &
+      - name: Install OpenFGA cli
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
+        with:
+          repo: openfga/cli
+          cache: enable
+      - name: Install jq
+        uses: dcarbone/install-jq-action@v2
+      - name: Create store with model
+        id: 'store'
+        run: |
+          fga store create --model ./example/model_with_conditions.fga > store_response.json
+          cat store_response.json
+          store_id=$(jq -r '.store.id' store_response.json)
+          echo "store_id=${store_id}" >> $GITHUB_OUTPUT
       - name: Run OpenFGA CLI Tests
         id: 'tests'
         uses: ./
@@ -71,6 +85,7 @@ jobs:
         with:
           test_path: ./example/model_with_conditions.fga.yaml
           fga_server_url: 'http://localhost:8080'
+          fga_server_store_id: ${{ steps.store.outputs.store_id }}
       - name: Assert expected results
         run: |
           if [ "${{ matrix.test.conditions_supported }}" == "true" ] && [ "${{ steps.tests.outcome }}" == "failure" ]

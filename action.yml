@@ -17,6 +17,10 @@ inputs:
     description: 'The OpenFGA server to test the Authorization Model against. If not provided, the tests will be run using the cli built-in OpenFGA instance.'
     required: false
     default: ''
+  fga_server_store_id:
+    description: 'The OpenFGA server store id. Must be provided if fga_server_url is configured.'
+    required: false
+    default: ''
   fga_api_token:
     description: 'The api token to use for testing against an OpenFGA server. Ignored if fga_server_url is not provided.'
     required: false
@@ -33,13 +37,15 @@ runs:
         cache: enable
     - name: Run OpenFGA CLI
       shell: bash
-      env:
-        FGA_SERVER_URL: ${{ inputs.fga_server_url }}
-        FGA_API_TOKEN: ${{ inputs.fga_api_token }}
       run: |
         fga_opts=""
-        if [[ -n "${FGA_SERVER_URL}" ]]; then
-          fga_opts="--api-url ${FGA_SERVER_URL} ${FGA_API_TOKEN:+--api-token ${FGA_API_TOKEN}}"
+        fga_token="${{ inputs.fga_api_token }}"
+        if [[ -n "${{ inputs.fga_server_url }}" ]]; then
+          if [[ -z "${{ inputs.fga_server_store_id }}" ]]; then
+            echo "missing store id for specified OpenFGA server ${{ inputs.fga_server_url }}."
+            exit 1
+          fi
+          fga_opts="--api-url ${{ inputs.fga_server_url }} --store-id ${{ inputs.fga_server_store_id }}  ${fga_token:+--api-token ${fga_token}}"
         fi
         
         while IFS= read -r -d '' test_file
