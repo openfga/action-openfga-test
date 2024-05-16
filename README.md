@@ -69,6 +69,50 @@ jobs:
           test_path: example/model.fga.yaml
 ```
 
+### Running tests against a given version of OpenFGA
+
+```yaml
+name: Test Action
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: openfga
+          POSTGRES_PASSWORD: '1234'
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      OPENFGA_DATASTORE_ENGINE: 'postgres'
+      OPENFGA_DATASTORE_URI: 'postgres://openfga:1234@127.0.0.1:5432/openfga'
+      OPENFGA_LOG_LEVEL: debug
+    steps:
+      - name: Install OpenFGA server v1.5.3
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
+        with:
+          repo: openfga/openfga
+          tag: v1.5.3
+          cache: enable
+      - name: Migrate OpenFGA database
+        shell: bash
+        run: openfga migrate
+      - name: Start OpenFGA server in background
+        shell: bash
+        run: openfga run &
+      - name: Run tests
+        uses: openfga/action-openfga-test@v0.1
+        with:
+          fga_server_url: 'http://localhost:8080'
+```
+
 ## License
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopenfga%2Faction-openfga-test.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopenfga%2Faction-openfga-test?ref=badge_large)
