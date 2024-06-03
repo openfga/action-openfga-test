@@ -13,6 +13,19 @@ inputs:
     description: 'Pattern to match the test files'
     required: false
     default: '*.fga.yaml'
+  fga_server_url:
+    description: 'The OpenFGA server to test the Authorization Model against. If not provided, the tests will be run using the cli built-in OpenFGA instance.'
+    required: false
+    default: ''
+  fga_server_store_id:
+    description: 'The OpenFGA server store id. Must be provided if fga_server_url is configured.'
+    required: false
+    default: ''
+  fga_api_token:
+    description: 'The api token to use for testing against an OpenFGA server. Ignored if fga_server_url is not provided.'
+    required: false
+    default: ''
+
 
 runs:
   using: composite
@@ -22,17 +35,35 @@ runs:
       with:
         repo: openfga/cli
         cache: enable
+    - uses: chrisdickinson/setup-yq@v1.0.1
+      with:
+        yq-version: v4.25.3
     - name: Run OpenFGA CLI
       shell: bash
       run: |
-          while IFS= read -r -d '' test_file
-          do
-            ((test_files_count+=1))
+        while IFS= read -r -d '' test_file
+        do
+          ((test_files_count+=1))
+        
+          if [[ -z "${{ inputs.fga_server_url }}" ]]; then
             echo "Running FGA test file ${test_file}"
             fga model test --tests "${test_file}"
-          done <   <(find ${{ inputs.test_path }} -name "${{ inputs.test_files_pattern }}" -print0)
-  
-          if [[ ${test_files_count} -eq 0 ]]; then
-            echo "No FGA test file found for path '${{ inputs.test_path }}' and pattern '${{ inputs.test_files_pattern }}'"
-            exit 1
+          else
+            echo "Running FGA test file ${test_file} against OpenFGA server ${{ inputs.fga_server_url }}"
+            fga_token="${{ inputs.fga_api_token }}"
+            test_file_without_model=mktemp
+            yq 'del(.model_file, .model)' ${test_file} > ${test_file_without_model}
+            fga model test \
+              ${fga_server_opts} \
+              --api-url "${{ inputs.fga_server_url }}" \
+              --store-id "${{ inputs.fga_server_store_id }}" \
+              ${fga_token:+--api-token ${fga_token}} \
+              --tests "${test_file_without_model}"
           fi
+        
+        done <   <(find ${{ inputs.test_path }} -name "${{ inputs.test_files_pattern }}" -print0)
+        
+        if [[ ${test_files_count} -eq 0 ]]; then
+          echo "No FGA test file found for path '${{ inputs.test_path }}' and pattern '${{ inputs.test_files_pattern }}'"
+          exit 1
+        fi
