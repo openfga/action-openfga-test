@@ -31,7 +31,8 @@ jobs:
     name: Run test
     runs-on: ubuntu-latest
     steps:
-      - uses: openfga/action-openfga-test@v0.1
+      - uses: actions/checkout@v4
+      - uses: openfga/action-openfga-test@v0.1.1
 ```
 
 ### Running tests of `*.fga.yaml` files present in a given folder
@@ -47,7 +48,8 @@ jobs:
     name: Run test
     runs-on: ubuntu-latest
     steps:
-      - uses: openfga/action-openfga-test@v0.1.0
+      - uses: actions/checkout@v4
+      - uses: openfga/action-openfga-test@v0.1.1
         with:
           test_path: example
 ```
@@ -65,7 +67,7 @@ jobs:
     name: Run test
     runs-on: ubuntu-latest
     steps:
-      - uses: openfga/action-openfga-test@v0.1
+      - uses: openfga/action-openfga-test@v0.1.1
         with:
           test_path: example/model.fga.yaml
 ```
@@ -96,6 +98,7 @@ jobs:
       OPENFGA_DATASTORE_URI: 'postgres://openfga:1234@127.0.0.1:5432/openfga'
       OPENFGA_LOG_LEVEL: debug
     steps:
+      - uses: actions/checkout@v4
       - name: Install OpenFGA server v1.5.3
         uses: jaxxstorm/action-install-gh-release@v1.11.0
         with:
