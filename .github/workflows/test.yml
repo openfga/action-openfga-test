@@ -53,7 +53,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install OpenFGA server ${{ matrix.test.openfga_tag }}
-        uses: jaxxstorm/action-install-gh-release@v1.12.0
+        uses: jaxxstorm/action-install-gh-release@v1.13.0
         with:
           repo: openfga/openfga
           tag: ${{ matrix.test.openfga_tag }}
@@ -65,7 +65,7 @@ jobs:
         shell: bash
         run: openfga run &
       - name: Install OpenFGA cli
-        uses: jaxxstorm/action-install-gh-release@v1.12.0
+        uses: jaxxstorm/action-install-gh-release@v1.13.0
         with:
           repo: openfga/cli
           cache: enable
