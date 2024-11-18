@@ -70,7 +70,7 @@ jobs:
           repo: openfga/cli
           cache: enable
       - name: Install jq
-        uses: dcarbone/install-jq-action@v2
+        uses: dcarbone/install-jq-action@v3
       - name: Create store with model
         id: 'store'
         run: |
