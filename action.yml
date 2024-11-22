@@ -31,11 +31,11 @@ runs:
   using: composite
   steps:
     - name: Install OpenFGA CLI
-      uses: jaxxstorm/action-install-gh-release@v1.13.0
+      uses: jaxxstorm/action-install-gh-release@7f2440a9a41f74262d8f6433da138c799799a969 # v1.13.0
       with:
         repo: openfga/cli
         cache: enable
-    - uses: chrisdickinson/setup-yq@v1.0.1
+    - uses: chrisdickinson/setup-yq@3d931309f27270ebbafd53f2daee773a82ea1822 # v1.0.0
       with:
         yq-version: v4.25.3
     - name: Run OpenFGA CLI
