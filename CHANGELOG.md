@@ -1,6 +1,11 @@
 # Changelog
 
-[Unreleased]
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/)
+and this project adheres to [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
 
 ## [0.1.2] - 2025-11-05
 
@@ -23,5 +28,7 @@ Initial OpenFGA Test Action release.
 
 This action can be used to run tests against an OpenFGA store file with a model.
 
+[Unreleased]: https://github.com/openfga/action-openfga-test/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/openfga/action-openfga-test/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/openfga/action-openfga-test/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/openfga/action-openfga-test/releases/tag/v0.1.0
