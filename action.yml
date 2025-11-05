@@ -25,7 +25,10 @@ inputs:
     description: 'The api token to use for testing against an OpenFGA server. Ignored if fga_server_url is not provided.'
     required: false
     default: ''
-
+  fga_cli_version:
+    description: 'Version tag of openfga/cli to use'
+    required: false
+    default: latest
 
 runs:
   using: composite
@@ -34,6 +37,7 @@ runs:
       uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
       with:
         repo: openfga/cli
+        tag: ${{ inputs.fga_cli_version }}
         cache: enable
     - uses: chrisdickinson/setup-yq@3d931309f27270ebbafd53f2daee773a82ea1822 # v1.0.0
       with:
