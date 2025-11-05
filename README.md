@@ -13,6 +13,7 @@ This action can be used to test your authorization model using store test files.
 | `fga_server_url`      | The OpenFGA server to test the Authorization Model against. If empty (which is the default value), the tests are run using the cli built-in OpenFGA instance. If specified, it is mandatory to specify the store id with the `fga_server_store_id` input, also the `model` and `model_file` entries of the tests are ignored | No       | _empty_      |
 | `fga_server_store_id` | The OpenFGA server store id. Must be provided if fga_server_url is configured.                                                                                                                                                                                                                                               | No       | _empty_      |
 | `fga_api_token`       | The api token to use for testing against an OpenFGA server. Ignored if `fga_server_url` is not provided.                                                                                                                                                                                                                     | No       | _empty_      |
+| `fga_cli_version`     | The [OpenFGA CLI](https://github.com/openfga/cli/) version to use as the base for tests.                                                                                                                                                                                                                                     | No       | `latest`     |
 
 > Note: the action will fail if no test is found in the specified test path with the given pattern
 
@@ -70,6 +71,24 @@ jobs:
       - uses: openfga/action-openfga-test@v0.1.1
         with:
           test_path: example/model.fga.yaml
+```
+
+### Running tests with a particular OpenFGA CLI version
+
+```yaml
+name: Test Action
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: openfga/action-openfga-test@v0.1.1
+        with:
+          fga_cli_version: 'v0.7.8'
 ```
 
 ### Running tests against a given version of OpenFGA
