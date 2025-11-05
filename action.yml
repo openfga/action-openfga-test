@@ -28,7 +28,7 @@ inputs:
   fga_cli_version:
     description: 'Version tag of openfga/cli to use'
     required: false
-    default: 'v0.7.5'
+    default: latest
 
 runs:
   using: composite
