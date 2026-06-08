@@ -15,7 +15,7 @@ jobs:
     name: Run test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
       - name: default values
         uses: ./
       - name: specify folder
@@ -53,7 +53,7 @@ jobs:
       OPENFGA_DATASTORE_URI: 'postgres://openfga:1234@127.0.0.1:5432/openfga'
       OPENFGA_LOG_LEVEL: debug
     steps:
-      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v4.2.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4.2.2
       - name: Install OpenFGA server ${{ matrix.test.openfga_tag }}
         uses: jaxxstorm/action-install-gh-release@25e24d2d23ae098373794ef1d6faecb48ee52da8 # v3.0.0
         with:
