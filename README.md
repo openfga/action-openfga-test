@@ -21,6 +21,7 @@ This action can be used to test your authorization model using store test files.
 
 ### Running tests of `*.fga.yaml` files present in the repository
 
+<!-- x-release-please-start-version -->
 ```yaml
 name: Test Action
 
@@ -33,11 +34,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: openfga/action-openfga-test@v0.1.1
+      - uses: openfga/action-openfga-test@v0.1.2
 ```
+<!-- x-release-please-end -->
 
 ### Running tests of `*.fga.yaml` files present in a given folder
 
+<!-- x-release-please-start-version -->
 ```yaml
 name: Test Action
 
@@ -50,13 +53,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: openfga/action-openfga-test@v0.1.1
+      - uses: openfga/action-openfga-test@v0.1.2
         with:
           test_path: example
 ```
+<!-- x-release-please-end -->
 
 ### Running tests of a single file
 
+<!-- x-release-please-start-version -->
 ```yaml
 name: Test Action
 
@@ -68,10 +73,11 @@ jobs:
     name: Run test
     runs-on: ubuntu-latest
     steps:
-      - uses: openfga/action-openfga-test@v0.1.1
+      - uses: openfga/action-openfga-test@v0.1.2
         with:
           test_path: example/model.fga.yaml
 ```
+<!-- x-release-please-end -->
 
 ### Running tests with a particular OpenFGA CLI version
 
@@ -86,7 +92,7 @@ jobs:
     name: Run test
     runs-on: ubuntu-latest
     steps:
-      - uses: openfga/action-openfga-test@v0.1.1
+      - uses: openfga/action-openfga-test@v0.1
         with:
           fga_cli_version: 'v0.7.8'
 ```
