@@ -81,6 +81,7 @@ jobs:
 
 ### Running tests with a particular OpenFGA CLI version
 
+<!-- x-release-please-start-version -->
 ```yaml
 name: Test Action
 
@@ -92,10 +93,11 @@ jobs:
     name: Run test
     runs-on: ubuntu-latest
     steps:
-      - uses: openfga/action-openfga-test@v0.1
+      - uses: openfga/action-openfga-test@v0.1.2
         with:
           fga_cli_version: 'v0.7.8'
 ```
+<!-- x-release-please-end -->
 
 ### Running tests against a given version of OpenFGA
 
