@@ -151,11 +151,12 @@ jobs:
           store_id= $(jq -r '.store.id' store_response.json)
           echo "store_id=${store_id}" >> $GITHUB_OUTPUT
       - name: Run tests
-        uses: openfga/action-openfga-test@v0.1
+        uses: openfga/action-openfga-test@v0.1.2
         with:
           fga_server_url: 'http://localhost:8080'
           fga_server_store_id: ${{ steps.store.outputs.store_id }}
 ```
+<!-- x-release-please-end -->
 
 ## License
 
