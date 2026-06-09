@@ -21,6 +21,7 @@ This action can be used to test your authorization model using store test files.
 
 ### Running tests of `*.fga.yaml` files present in the repository
 
+<!-- x-release-please-start-version -->
 ```yaml
 name: Test Action
 
@@ -33,11 +34,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: openfga/action-openfga-test@v0.1.1
+      - uses: openfga/action-openfga-test@v0.1.2
 ```
+<!-- x-release-please-end -->
 
 ### Running tests of `*.fga.yaml` files present in a given folder
 
+<!-- x-release-please-start-version -->
 ```yaml
 name: Test Action
 
@@ -50,13 +53,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: openfga/action-openfga-test@v0.1.1
+      - uses: openfga/action-openfga-test@v0.1.2
         with:
           test_path: example
 ```
+<!-- x-release-please-end -->
 
 ### Running tests of a single file
 
+<!-- x-release-please-start-version -->
 ```yaml
 name: Test Action
 
@@ -68,13 +73,15 @@ jobs:
     name: Run test
     runs-on: ubuntu-latest
     steps:
-      - uses: openfga/action-openfga-test@v0.1.1
+      - uses: openfga/action-openfga-test@v0.1.2
         with:
           test_path: example/model.fga.yaml
 ```
+<!-- x-release-please-end -->
 
 ### Running tests with a particular OpenFGA CLI version
 
+<!-- x-release-please-start-version -->
 ```yaml
 name: Test Action
 
@@ -86,10 +93,11 @@ jobs:
     name: Run test
     runs-on: ubuntu-latest
     steps:
-      - uses: openfga/action-openfga-test@v0.1.1
+      - uses: openfga/action-openfga-test@v0.1.2
         with:
           fga_cli_version: 'v0.7.8'
 ```
+<!-- x-release-please-end -->
 
 ### Running tests against a given version of OpenFGA
 
@@ -145,11 +153,12 @@ jobs:
           store_id= $(jq -r '.store.id' store_response.json)
           echo "store_id=${store_id}" >> $GITHUB_OUTPUT
       - name: Run tests
-        uses: openfga/action-openfga-test@v0.1
+        uses: openfga/action-openfga-test@v0.1.2
         with:
           fga_server_url: 'http://localhost:8080'
           fga_server_store_id: ${{ steps.store.outputs.store_id }}
 ```
+<!-- x-release-please-end -->
 
 ## License
 
