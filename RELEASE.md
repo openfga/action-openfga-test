@@ -28,4 +28,4 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 | `perf:`, `refactor:`     | Changed       |
 | `revert:`                | Removed       |
 | `docs:`                  | Documentation |
-| `test:`, `ci:`, `chore:` | hidden        |
+| `test:`, `ci:`, `chore:`, `release:` | hidden        |
