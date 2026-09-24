@@ -29,6 +29,10 @@ inputs:
     description: 'Version tag of openfga/cli to use'
     required: false
     default: latest
+  fga_cli_allow_external_files:
+    description: 'Enable OpenFGA cli --allow-external-files flag.'
+    required: false
+    default: false
 
 runs:
   using: composite
@@ -44,25 +48,38 @@ runs:
         yq-version: v4.25.3
     - name: Run OpenFGA CLI
       shell: bash
+      env:
+        FGA_CLI_ALLOW_EXTERNAL_FILES: ${{ inputs.fga_cli_allow_external_files }}
       run: |
         while IFS= read -r -d '' test_file
         do
           ((test_files_count+=1))
         
+          allow_external_files=""
+          if [[ "$FGA_CLI_ALLOW_EXTERNAL_FILES" == "true" ]]; then
+            allow_external_files="--allow-external-files"
+          fi
+
           if [[ -z "${{ inputs.fga_server_url }}" ]]; then
             echo "Running FGA test file ${test_file}"
-            fga model test --tests "${test_file}"
+            fga model test ${allow_external_files} --tests "${test_file}"
           else
             echo "Running FGA test file ${test_file} against OpenFGA server ${{ inputs.fga_server_url }}"
             fga_token="${{ inputs.fga_api_token }}"
-            test_file_without_model=mktemp
-            yq 'del(.model_file, .model)' ${test_file} > ${test_file_without_model}
+            test_file_dir=$(dirname -- "${test_file}")
+            test_file_base=$(basename -- "${test_file}")
+            test_file_without_model=$(mktemp -- "${test_file_dir}/${test_file_base}.XXXXXX")
+            trap 'rm -f "${test_file_without_model}"' EXIT
+            yq 'del(.model_file, .model)' -- "${test_file}" > "${test_file_without_model}"
             fga model test \
+              ${allow_external_files} \
               ${fga_server_opts} \
               --api-url "${{ inputs.fga_server_url }}" \
               --store-id "${{ inputs.fga_server_store_id }}" \
               ${fga_token:+--api-token ${fga_token}} \
               --tests "${test_file_without_model}"
+            rm -f "${test_file_without_model}"
+            trap - EXIT
           fi
         
         done <   <(find ${{ inputs.test_path }} -name "${{ inputs.test_files_pattern }}" -print0)

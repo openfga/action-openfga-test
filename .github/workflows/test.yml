@@ -27,6 +27,99 @@ jobs:
         with:
           test_path: ./example/model.fga.yaml
 
+  test_allow_external_files:
+    name: Test allow-external-files flag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: external reference should fail by default
+        id: without_flag
+        uses: ./
+        continue-on-error: true
+        with:
+          test_path: ./example/allow_external_files/tests
+          test_files_pattern: '*.test.yaml'
+      - name: assert failure without flag
+        run: |
+          if [ "${{ steps.without_flag.outcome }}" == "success" ]; then
+            echo "Expected the action to fail without fga_cli_allow_external_files"
+            exit 1
+          fi
+      - name: external reference should pass with flag
+        uses: ./
+        with:
+          test_path: ./example/allow_external_files/tests
+          test_files_pattern: '*.test.yaml'
+          fga_cli_allow_external_files: 'true'
+
+  test_allow_external_files_remote:
+    name: Test allow-external-files flag against remote server
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: openfga
+          POSTGRES_PASSWORD: "1234"
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      OPENFGA_DATASTORE_ENGINE: 'postgres'
+      OPENFGA_DATASTORE_URI: 'postgres://openfga:1234@127.0.0.1:5432/openfga'
+      OPENFGA_LOG_LEVEL: debug
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Install OpenFGA server
+        uses: jaxxstorm/action-install-gh-release@25e24d2d23ae098373794ef1d6faecb48ee52da8 # v3.0.0
+        with:
+          repo: openfga/openfga
+          tag: v1.5.3
+          cache: enable
+      - name: Migrate OpenFGA Database
+        shell: bash
+        run: openfga migrate
+      - name: Start OpenFGA Server
+        shell: bash
+        run: openfga run &
+      - name: Install OpenFGA cli
+        uses: jaxxstorm/action-install-gh-release@25e24d2d23ae098373794ef1d6faecb48ee52da8 # v3.0.0
+        with:
+          repo: openfga/cli
+          cache: enable
+      - name: Install jq
+        uses: dcarbone/install-jq-action@4fcb5062d7ce9bc4382d1a352d19ba3ba2c317c1 # v4.0.1
+      - name: Create store with model
+        id: store
+        run: |
+          fga store create --model ./example/allow_external_files/model.fga > store_response.json
+          cat store_response.json
+          store_id=$(jq -r '.store.id' store_response.json)
+          echo "store_id=${store_id}" >> $GITHUB_OUTPUT
+      - name: remote external reference should by default
+        id: without_flag
+        uses: ./
+        continue-on-error: true
+        with:
+          test_path: ./example/allow_external_files/tests
+          test_files_pattern: '*.test.yaml'
+          fga_server_url: 'http://localhost:8080'
+          fga_server_store_id: ${{ steps.store.outputs.store_id }}
+      - name: assert failure without flag
+        run: |
+          if [ "${{ steps.without_flag.outcome }}" == "success" ]; then
+            echo "Expected the action to fail without fga_cli_allow_external_files"
+            exit 1
+          fi
+      - name: remote external reference should pass with flag
+        uses: ./
+        with:
+          test_path: ./example/allow_external_files/tests
+          test_files_pattern: '*.test.yaml'
+          fga_cli_allow_external_files: 'true'
+          fga_server_url: 'http://localhost:8080'
+          fga_server_store_id: ${{ steps.store.outputs.store_id }}
+
   test_conditions_support:
     name: Test conditions support
     runs-on: ubuntu-latest
