@@ -5,10 +5,7 @@
 
 ### Added
 
-* support `allow-external-files` flag ([128f02f](https://github.com/openfga/action-openfga-test/commit/128f02fd45f65634bde035c6321f69973d151d52))
 * support `allow-external-files` flag ([4090fa6](https://github.com/openfga/action-openfga-test/commit/4090fa6439a9b7613ae1ea026a17af70fc51e347))
-* support allow-external-files flag ([128f02f](https://github.com/openfga/action-openfga-test/commit/128f02fd45f65634bde035c6321f69973d151d52))
-
 
 ### Fixed
 
