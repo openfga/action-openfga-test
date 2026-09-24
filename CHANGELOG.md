@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.3](https://github.com/openfga/action-openfga-test/compare/v0.1.2...v0.1.3) (2026-09-24)
+
+
+### Added
+
+* support `allow-external-files` flag ([4090fa6](https://github.com/openfga/action-openfga-test/commit/4090fa6439a9b7613ae1ea026a17af70fc51e347))
+
+### Fixed
+
+* update floating references to pinned and wrap inside tag ([ab5748c](https://github.com/openfga/action-openfga-test/commit/ab5748c6c09f24bf1cb1f92a5a702e9d3f6c2f17))
+
 ## [0.1.2](https://github.com/openfga/action-openfga-test/compare/v0.1.1...v0.1.2) (2025-11-05)
 
 

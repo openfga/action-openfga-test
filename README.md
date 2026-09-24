@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: openfga/action-openfga-test@v0.1.2
+      - uses: openfga/action-openfga-test@v0.1.3
 ```
 <!-- x-release-please-end -->
 
@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: openfga/action-openfga-test@v0.1.2
+      - uses: openfga/action-openfga-test@v0.1.3
         with:
           test_path: example
 ```
@@ -74,7 +74,7 @@ jobs:
     name: Run test
     runs-on: ubuntu-latest
     steps:
-      - uses: openfga/action-openfga-test@v0.1.2
+      - uses: openfga/action-openfga-test@v0.1.3
         with:
           test_path: example/model.fga.yaml
 ```
@@ -94,9 +94,9 @@ jobs:
     name: Run test
     runs-on: ubuntu-latest
     steps:
-      - uses: openfga/action-openfga-test@v0.1.2
+      - uses: openfga/action-openfga-test@v0.1.3
         with:
-          fga_cli_version: 'v0.7.8'
+          fga_cli_version: 'v0.1.3'
 ```
 <!-- x-release-please-end -->
 
