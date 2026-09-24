@@ -1,0 +1,11 @@
+name: AllowExternalFilesTest
+model_file: ../model.fga
+tuple_file: ../tuples.yaml
+
+tests:
+  - name: external-file-reference
+    check:
+      - user: user:anne
+        object: folder:product
+        assertions:
+          viewer: true
