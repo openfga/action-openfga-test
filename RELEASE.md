@@ -9,7 +9,7 @@ Releases use [release-please](https://github.com/googleapis/release-please), run
    - `patch` / `minor` / `major` — force it.
    - `explicit` — set an exact version in **release-version** (e.g. `0.2.0-beta.1`).
 2. Review and merge the `release: v<version>` PR it opens.
-3. On merge, a GPG-signed tag and a draft GitHub Release are created — publish it.
+3. On merge, a GPG-signed tag and a draft GitHub Release are created; the tag-triggered release workflow automatically publishes it.
 
 Use `explicit` after a pre-release or a manually created tag, or to step a beta; release-please can't guess the next version in those cases.
 
