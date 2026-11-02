@@ -43,7 +43,7 @@ runs:
         repo: openfga/cli
         tag: ${{ inputs.fga_cli_version }}
         cache: enable
-    - uses: chrisdickinson/setup-yq@3d931309f27270ebbafd53f2daee773a82ea1822 # v1.0.0
+    - uses: chrisdickinson/setup-yq@3d931309f27270ebbafd53f2daee773a82ea1822 # v1.0.1
       with:
         yq-version: v4.25.3
     - name: Run OpenFGA CLI
