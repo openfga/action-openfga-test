@@ -56,6 +56,12 @@ runs:
         INPUT_FGA_SERVER_STORE_ID: ${{ inputs.fga_server_store_id }}
         INPUT_FGA_API_TOKEN: ${{ inputs.fga_api_token }}
       run: |
+        # find treats an argument starting with '-' as an expression, not a path
+        test_path="${INPUT_TEST_PATH:-.}"
+        if [[ "$test_path" == -* ]]; then
+          test_path="./$test_path"
+        fi
+
         while IFS= read -r -d '' test_file
         do
           ((test_files_count+=1))
@@ -86,7 +92,7 @@ runs:
             trap - EXIT
           fi
         
-        done <   <(find "$INPUT_TEST_PATH" -name "$INPUT_TEST_FILES_PATTERN" -print0)
+        done <   <(find "$test_path" -name "$INPUT_TEST_FILES_PATTERN" -print0)
         
         if [[ ${test_files_count} -eq 0 ]]; then
           echo "No FGA test file found for path '$INPUT_TEST_PATH' and pattern '$INPUT_TEST_FILES_PATTERN'"
