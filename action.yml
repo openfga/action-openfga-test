@@ -67,7 +67,7 @@ runs:
 
           if [[ -z "$INPUT_FGA_SERVER_URL" ]]; then
             echo "Running FGA test file ${test_file}"
-            fga model test ${allow_external_files} --tests "${test_file}"
+            fga model test ${allow_external_files:+"$allow_external_files"} --tests "${test_file}"
           else
             echo "Running FGA test file ${test_file} against OpenFGA server $INPUT_FGA_SERVER_URL"
             fga_token="$INPUT_FGA_API_TOKEN"
@@ -77,8 +77,7 @@ runs:
             trap 'rm -f "${test_file_without_model}"' EXIT
             yq 'del(.model_file, .model)' -- "${test_file}" > "${test_file_without_model}"
             fga model test \
-              ${allow_external_files} \
-              ${fga_server_opts} \
+              ${allow_external_files:+"$allow_external_files"} \
               --api-url "$INPUT_FGA_SERVER_URL" \
               --store-id "$INPUT_FGA_SERVER_STORE_ID" \
               ${fga_token:+--api-token "$fga_token"} \
