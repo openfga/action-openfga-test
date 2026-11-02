@@ -40,8 +40,10 @@ jobs:
           test_path: ./example/allow_external_files/tests
           test_files_pattern: '*.test.yaml'
       - name: assert failure without flag
+        env:
+          WITHOUT_FLAG_OUTCOME: ${{ steps.without_flag.outcome }}
         run: |
-          if [ "${{ steps.without_flag.outcome }}" == "success" ]; then
+          if [ "$WITHOUT_FLAG_OUTCOME" == "success" ]; then
             echo "Expected the action to fail without fga_cli_allow_external_files"
             exit 1
           fi
@@ -106,8 +108,10 @@ jobs:
           fga_server_url: 'http://localhost:8080'
           fga_server_store_id: ${{ steps.store.outputs.store_id }}
       - name: assert failure without flag
+        env:
+          WITHOUT_FLAG_OUTCOME: ${{ steps.without_flag.outcome }}
         run: |
-          if [ "${{ steps.without_flag.outcome }}" == "success" ]; then
+          if [ "$WITHOUT_FLAG_OUTCOME" == "success" ]; then
             echo "Expected the action to fail without fga_cli_allow_external_files"
             exit 1
           fi
