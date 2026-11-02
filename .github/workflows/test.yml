@@ -182,15 +182,19 @@ jobs:
           fga_server_url: 'http://localhost:8080'
           fga_server_store_id: ${{ steps.store.outputs.store_id }}
       - name: Assert expected results
+        env:
+          CONDITIONS_SUPPORTED: ${{ matrix.test.conditions_supported }}
+          TESTS_OUTCOME: ${{ steps.tests.outcome }}
+          OPENFGA_TAG: ${{ matrix.test.openfga_tag }}
         run: |
-          if [ "${{ matrix.test.conditions_supported }}" == "true" ] && [ "${{ steps.tests.outcome }}" == "failure" ]
+          if [ "$CONDITIONS_SUPPORTED" == "true" ] && [ "$TESTS_OUTCOME" == "failure" ]
           then
-            echo "${{ matrix.test.openfga_tag }} is expected to support conditions but tests failed"
+            echo "$OPENFGA_TAG is expected to support conditions but tests failed"
             exit 1
           fi
-          if [ "${{ matrix.test.conditions_supported }}" == "false" ] && [ "${{ steps.tests.outcome }}" == "success" ]
+          if [ "$CONDITIONS_SUPPORTED" == "false" ] && [ "$TESTS_OUTCOME" == "success" ]
           then
-            echo "${{ matrix.test.openfga_tag }} is expected to not support conditions but tests passed"
+            echo "$OPENFGA_TAG is expected to not support conditions but tests passed"
             exit 1
           fi
 
