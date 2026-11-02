@@ -56,9 +56,9 @@ runs:
         INPUT_FGA_SERVER_STORE_ID: ${{ inputs.fga_server_store_id }}
         INPUT_FGA_API_TOKEN: ${{ inputs.fga_api_token }}
       run: |
-        # find treats an argument starting with '-' as an expression, not a path
+        # find treats an argument starting with '-', or a bare '!' or '(', as an expression, not a path
         test_path="${INPUT_TEST_PATH:-.}"
-        if [[ "$test_path" == -* ]]; then
+        if [[ "$test_path" == -* || "$test_path" == '!' || "$test_path" == '(' ]]; then
           test_path="./$test_path"
         fi
 
