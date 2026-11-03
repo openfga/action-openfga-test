@@ -62,6 +62,7 @@ runs:
           test_path="./$test_path"
         fi
 
+        test_files_count=0
         while IFS= read -r -d '' test_file
         do
           ((test_files_count+=1))
