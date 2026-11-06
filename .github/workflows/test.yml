@@ -41,6 +41,35 @@ jobs:
             echo "Expected the action to fail when no test files match"
             exit 1
           fi
+      - name: test_path starting with - should not be read as a find expression
+        id: dash_path
+        uses: ./
+        continue-on-error: true
+        with:
+          test_path: '-delete'
+      - name: test_path with shell syntax should not be executed
+        id: injection_path
+        uses: ./
+        continue-on-error: true
+        with:
+          test_path: '$(touch injected-marker)'
+      - name: assert malicious test_path values are treated as literal paths
+        env:
+          DASH_PATH_OUTCOME: ${{ steps.dash_path.outcome }}
+          INJECTION_PATH_OUTCOME: ${{ steps.injection_path.outcome }}
+        run: |
+          if [ "$DASH_PATH_OUTCOME" != "failure" ] || [ "$INJECTION_PATH_OUTCOME" != "failure" ]; then
+            echo "Expected the action to fail for non-existent test_path values"
+            exit 1
+          fi
+          if [ ! -f ./example/model.fga.yaml ]; then
+            echo "test_path '-delete' was read as a find expression and deleted files"
+            exit 1
+          fi
+          if [ -e ./injected-marker ]; then
+            echo "test_path was executed as shell code"
+            exit 1
+          fi
 
   test_allow_external_files:
     name: Test allow-external-files flag
