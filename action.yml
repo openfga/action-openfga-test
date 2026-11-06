@@ -96,6 +96,6 @@ runs:
         done <   <(find "$test_path" -name "$INPUT_TEST_FILES_PATTERN" -print0)
         
         if [[ ${test_files_count} -eq 0 ]]; then
-          echo "No FGA test file found for path '$INPUT_TEST_PATH' and pattern '$INPUT_TEST_FILES_PATTERN'"
+          echo "No FGA test file found for path '$test_path' and pattern '$INPUT_TEST_FILES_PATTERN'"
           exit 1
         fi
