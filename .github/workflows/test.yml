@@ -71,6 +71,83 @@ jobs:
             exit 1
           fi
 
+  test_input_handling:
+    name: Test inputs are passed to the CLI as literal arguments
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Create stub fga CLI that records its arguments
+        run: |
+          stub_dir="$RUNNER_TEMP/fga-stub"
+          mkdir -p "$stub_dir/bin"
+          cat > "$stub_dir/bin/fga" <<'EOF'
+          #!/usr/bin/env bash
+          printf '%s\0' "$@" >> "$FGA_STUB_ARGS_FILE"
+          EOF
+          chmod +x "$stub_dir/bin/fga"
+          # BASH_ENV is sourced by the action's bash step, putting the stub ahead of the installed CLI
+          # shellcheck disable=SC2016
+          printf 'export PATH=%q:"$PATH"\n' "$stub_dir/bin" > "$stub_dir/env.sh"
+      - name: server inputs with shell syntax should reach the CLI unchanged
+        uses: ./
+        env:
+          BASH_ENV: ${{ runner.temp }}/fga-stub/env.sh
+          FGA_STUB_ARGS_FILE: ${{ runner.temp }}/fga-stub/server-args
+        with:
+          test_path: ./example/model.fga.yaml
+          fga_server_url: 'http://localhost:8080/$(touch url-marker)'
+          fga_server_store_id: 'store-id;touch store-marker'
+          fga_api_token: 'token with spaces $(touch token-marker) `touch token-marker`'
+      - name: test_files_pattern with shell syntax should not be executed
+        id: injection_pattern
+        uses: ./
+        continue-on-error: true
+        env:
+          BASH_ENV: ${{ runner.temp }}/fga-stub/env.sh
+          FGA_STUB_ARGS_FILE: ${{ runner.temp }}/fga-stub/pattern-args
+        with:
+          test_path: ./example
+          test_files_pattern: '$(touch pattern-marker)*.fga.yaml'
+      - name: assert inputs were passed as literal arguments
+        env:
+          ARGS_FILE: ${{ runner.temp }}/fga-stub/server-args
+          EXPECTED_URL: 'http://localhost:8080/$(touch url-marker)'
+          EXPECTED_STORE_ID: 'store-id;touch store-marker'
+          EXPECTED_TOKEN: 'token with spaces $(touch token-marker) `touch token-marker`'
+          INJECTION_PATTERN_OUTCOME: ${{ steps.injection_pattern.outcome }}
+        run: |
+          if [ ! -f "$ARGS_FILE" ]; then
+            echo "The stub fga CLI was not called"
+            exit 1
+          fi
+          mapfile -d '' args < "$ARGS_FILE"
+          printf 'fga called with: '; printf '[%s] ' "${args[@]}"; echo
+          expected=(model test --api-url "$EXPECTED_URL" --store-id "$EXPECTED_STORE_ID" --api-token "$EXPECTED_TOKEN" --tests)
+          if [ "${#args[@]}" -ne 10 ]; then
+            echo "Expected 10 CLI arguments, got ${#args[@]}"
+            exit 1
+          fi
+          for i in "${!expected[@]}"; do
+            if [ "${args[$i]}" != "${expected[$i]}" ]; then
+              echo "Argument $i: expected '${expected[$i]}', got '${args[$i]}'"
+              exit 1
+            fi
+          done
+          if [[ "${args[9]}" != ./example/model.fga.yaml.* ]]; then
+            echo "Expected --tests to point at a copy of ./example/model.fga.yaml, got '${args[9]}'"
+            exit 1
+          fi
+          if [ "$INJECTION_PATTERN_OUTCOME" != "failure" ]; then
+            echo "Expected the action to fail when test_files_pattern matches no files"
+            exit 1
+          fi
+          for marker in url-marker store-marker token-marker pattern-marker; do
+            if [ -e "./$marker" ]; then
+              echo "An input was executed as shell code ($marker was created)"
+              exit 1
+            fi
+          done
+
   test_allow_external_files:
     name: Test allow-external-files flag
     runs-on: ubuntu-latest
