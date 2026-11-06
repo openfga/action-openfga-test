@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.0](https://github.com/openfga/action-openfga-test/compare/v0.1.3...v0.2.0) (2026-11-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* `test_path` is now a single literal path; wildcards and multiple space-separated paths are no longer expanded. Use `test_files_pattern` instead.
+
+### Fixed
+
+* harden the action against script injection - thanks to Chainguard for the hardening reports ([1e58af5](https://github.com/openfga/action-openfga-test/commit/1e58af51762f6151cee4359268cf3d4c98d68d95))
+
 ## [0.1.3](https://github.com/openfga/action-openfga-test/compare/v0.1.2...v0.1.3) (2026-09-24)
 
 
