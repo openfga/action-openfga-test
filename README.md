@@ -18,6 +18,8 @@ This action can be used to test your authorization model using store test files.
 
 > Note: the action will fail if no test is found in the specified test path with the given pattern
 
+> Note: `test_path` is treated as a single path; wildcards and multiple paths are not expanded. Use `test_files_pattern` to match several files.
+
 ## Examples
 
 ### Running tests of `*.fga.yaml` files present in the repository

@@ -15,7 +15,7 @@ jobs:
     name: Run test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: default values
         uses: ./
       - name: specify folder
@@ -26,12 +26,133 @@ jobs:
         uses: ./
         with:
           test_path: ./example/model.fga.yaml
+      - name: no matching test files should fail
+        id: no_files
+        uses: ./
+        continue-on-error: true
+        with:
+          test_path: ./example
+          test_files_pattern: '*.no-such-file.yaml'
+      - name: assert failure when no test files match
+        env:
+          NO_FILES_OUTCOME: ${{ steps.no_files.outcome }}
+        run: |
+          if [ "$NO_FILES_OUTCOME" != "failure" ]; then
+            echo "Expected the action to fail when no test files match"
+            exit 1
+          fi
+      - name: test_path starting with - should not be read as a find expression
+        id: dash_path
+        uses: ./
+        continue-on-error: true
+        with:
+          test_path: '-delete'
+      - name: test_path with shell syntax should not be executed
+        id: injection_path
+        uses: ./
+        continue-on-error: true
+        with:
+          test_path: '$(touch injected-marker)'
+      - name: assert malicious test_path values are treated as literal paths
+        env:
+          DASH_PATH_OUTCOME: ${{ steps.dash_path.outcome }}
+          INJECTION_PATH_OUTCOME: ${{ steps.injection_path.outcome }}
+        run: |
+          if [ "$DASH_PATH_OUTCOME" != "failure" ] || [ "$INJECTION_PATH_OUTCOME" != "failure" ]; then
+            echo "Expected the action to fail for non-existent test_path values"
+            exit 1
+          fi
+          if [ ! -f ./example/model.fga.yaml ]; then
+            echo "test_path '-delete' was read as a find expression and deleted files"
+            exit 1
+          fi
+          if [ -e ./injected-marker ]; then
+            echo "test_path was executed as shell code"
+            exit 1
+          fi
+
+  test_input_handling:
+    name: Test inputs are passed to the CLI as literal arguments
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Create stub fga CLI that records its arguments
+        run: |
+          stub_dir="$RUNNER_TEMP/fga-stub"
+          mkdir -p "$stub_dir/bin"
+          cat > "$stub_dir/bin/fga" <<'EOF'
+          #!/usr/bin/env bash
+          printf '%s\0' "$@" >> "$FGA_STUB_ARGS_FILE"
+          EOF
+          chmod +x "$stub_dir/bin/fga"
+          # BASH_ENV is sourced by the action's bash step, putting the stub ahead of the installed CLI
+          # shellcheck disable=SC2016
+          printf 'export PATH=%q:"$PATH"\n' "$stub_dir/bin" > "$stub_dir/env.sh"
+      - name: server inputs with shell syntax should reach the CLI unchanged
+        uses: ./
+        env:
+          BASH_ENV: ${{ runner.temp }}/fga-stub/env.sh
+          FGA_STUB_ARGS_FILE: ${{ runner.temp }}/fga-stub/server-args
+        with:
+          test_path: ./example/model.fga.yaml
+          fga_server_url: 'http://localhost:8080/$(touch url-marker)'
+          fga_server_store_id: 'store-id;touch store-marker'
+          fga_api_token: 'token with spaces $(touch token-marker) `touch token-marker`'
+      - name: test_files_pattern with shell syntax should not be executed
+        id: injection_pattern
+        uses: ./
+        continue-on-error: true
+        env:
+          BASH_ENV: ${{ runner.temp }}/fga-stub/env.sh
+          FGA_STUB_ARGS_FILE: ${{ runner.temp }}/fga-stub/pattern-args
+        with:
+          test_path: ./example
+          test_files_pattern: '$(touch pattern-marker)*.fga.yaml'
+      - name: assert inputs were passed as literal arguments
+        env:
+          ARGS_FILE: ${{ runner.temp }}/fga-stub/server-args
+          EXPECTED_URL: 'http://localhost:8080/$(touch url-marker)'
+          EXPECTED_STORE_ID: 'store-id;touch store-marker'
+          EXPECTED_TOKEN: 'token with spaces $(touch token-marker) `touch token-marker`'
+          INJECTION_PATTERN_OUTCOME: ${{ steps.injection_pattern.outcome }}
+        run: |
+          if [ ! -f "$ARGS_FILE" ]; then
+            echo "The stub fga CLI was not called"
+            exit 1
+          fi
+          mapfile -d '' args < "$ARGS_FILE"
+          printf 'fga called with: '; printf '[%s] ' "${args[@]}"; echo
+          expected=(model test --api-url "$EXPECTED_URL" --store-id "$EXPECTED_STORE_ID" --api-token "$EXPECTED_TOKEN" --tests)
+          if [ "${#args[@]}" -ne 10 ]; then
+            echo "Expected 10 CLI arguments, got ${#args[@]}"
+            exit 1
+          fi
+          for i in "${!expected[@]}"; do
+            if [ "${args[$i]}" != "${expected[$i]}" ]; then
+              echo "Argument $i: expected '${expected[$i]}', got '${args[$i]}'"
+              exit 1
+            fi
+          done
+          if [[ "${args[9]}" != ./example/model.fga.yaml.* ]]; then
+            echo "Expected --tests to point at a copy of ./example/model.fga.yaml, got '${args[9]}'"
+            exit 1
+          fi
+          if [ "$INJECTION_PATTERN_OUTCOME" != "failure" ]; then
+            echo "Expected the action to fail when test_files_pattern matches no files"
+            exit 1
+          fi
+          for marker in url-marker store-marker token-marker pattern-marker; do
+            if [ -e "./$marker" ]; then
+              echo "An input was executed as shell code ($marker was created)"
+              exit 1
+            fi
+          done
 
   test_allow_external_files:
     name: Test allow-external-files flag
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: external reference should fail by default
         id: without_flag
         uses: ./
@@ -40,8 +161,10 @@ jobs:
           test_path: ./example/allow_external_files/tests
           test_files_pattern: '*.test.yaml'
       - name: assert failure without flag
+        env:
+          WITHOUT_FLAG_OUTCOME: ${{ steps.without_flag.outcome }}
         run: |
-          if [ "${{ steps.without_flag.outcome }}" == "success" ]; then
+          if [ "$WITHOUT_FLAG_OUTCOME" == "success" ]; then
             echo "Expected the action to fail without fga_cli_allow_external_files"
             exit 1
           fi
@@ -69,7 +192,7 @@ jobs:
       OPENFGA_DATASTORE_URI: 'postgres://openfga:1234@127.0.0.1:5432/openfga'
       OPENFGA_LOG_LEVEL: debug
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install OpenFGA server
         uses: jaxxstorm/action-install-gh-release@25e24d2d23ae098373794ef1d6faecb48ee52da8 # v3.0.0
         with:
@@ -106,8 +229,10 @@ jobs:
           fga_server_url: 'http://localhost:8080'
           fga_server_store_id: ${{ steps.store.outputs.store_id }}
       - name: assert failure without flag
+        env:
+          WITHOUT_FLAG_OUTCOME: ${{ steps.without_flag.outcome }}
         run: |
-          if [ "${{ steps.without_flag.outcome }}" == "success" ]; then
+          if [ "$WITHOUT_FLAG_OUTCOME" == "success" ]; then
             echo "Expected the action to fail without fga_cli_allow_external_files"
             exit 1
           fi
@@ -146,7 +271,7 @@ jobs:
       OPENFGA_DATASTORE_URI: 'postgres://openfga:1234@127.0.0.1:5432/openfga'
       OPENFGA_LOG_LEVEL: debug
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install OpenFGA server ${{ matrix.test.openfga_tag }}
         uses: jaxxstorm/action-install-gh-release@25e24d2d23ae098373794ef1d6faecb48ee52da8 # v3.0.0
         with:
@@ -182,15 +307,19 @@ jobs:
           fga_server_url: 'http://localhost:8080'
           fga_server_store_id: ${{ steps.store.outputs.store_id }}
       - name: Assert expected results
+        env:
+          CONDITIONS_SUPPORTED: ${{ matrix.test.conditions_supported }}
+          TESTS_OUTCOME: ${{ steps.tests.outcome }}
+          OPENFGA_TAG: ${{ matrix.test.openfga_tag }}
         run: |
-          if [ "${{ matrix.test.conditions_supported }}" == "true" ] && [ "${{ steps.tests.outcome }}" == "failure" ]
+          if [ "$CONDITIONS_SUPPORTED" == "true" ] && [ "$TESTS_OUTCOME" == "failure" ]
           then
-            echo "${{ matrix.test.openfga_tag }} is expected to support conditions but tests failed"
+            echo "$OPENFGA_TAG is expected to support conditions but tests failed"
             exit 1
           fi
-          if [ "${{ matrix.test.conditions_supported }}" == "false" ] && [ "${{ steps.tests.outcome }}" == "success" ]
+          if [ "$CONDITIONS_SUPPORTED" == "false" ] && [ "$TESTS_OUTCOME" == "success" ]
           then
-            echo "${{ matrix.test.openfga_tag }} is expected to not support conditions but tests passed"
+            echo "$OPENFGA_TAG is expected to not support conditions but tests passed"
             exit 1
           fi
 
